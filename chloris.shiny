@@ -1,0 +1,153 @@
+library(shiny)
+library(shinythemes)
+library(shinydashboard)
+library(rgdal)
+library(raster)
+library(RPostgres)
+library(RPostgreSQL)
+library(dplyr)
+library(ggplot2)
+library(NLP)
+library(datapack)
+
+ui <- fluidPage(
+  theme = shinytheme("united"), collapsible = TRUE,
+  windowTitle = "CHLORIS",
+  navbarMenu("first thing",
+             tabPanel("Time Series",
+                      sidebarLayout(
+                        mainPanel(plotOutput("plot1", height = 250),
+                                  tableOutput("text2")),
+                        
+                        
+                        sidebarPanel(
+                          fluidRow(
+                            mainPanel(plotOutput("plot1", height = 250)),
+                            
+                            box(
+                              title = "Longtitude",
+                              sliderInput("longt", "Number of observations:", 68, 92, 76)),
+                            box(
+                              title = "Latitude",
+                              sliderInput("lat", "Number of observations:", -44, -21, -27)),
+                            selectInput("choose_band",
+                                        label = "get Band:",
+                                        choices = c('QA',2,3,4,5)),
+                            checkboxInput("condition_array1",
+                                          label = "cloud",
+                                          value = TRUE),
+                            checkboxInput("condition_array2",
+                                          label = "shadow",
+                                          value = FALSE),
+                            checkboxInput("condition_array3",
+                                          label = "SnowIce",
+                                          value = FALSE),
+                            checkboxInput("condition_array4",
+                                          label = "cirrus",
+                                          value = FALSE)
+                          )))
+             )))
+
+
+
+server <- function(input, output) {
+  conn <- dbConnect(PostgreSQL(), host = "bu-rstudio-connect.bu.edu",
+                    user = "chloris", password = "msspfall22",
+                    dbname = "dbname=chloris sslmode=require")
+  
+  getrcl = function(condition_array){
+    cloud_value = c(2800, 2804, 2808, 2812, 6896, 6900, 6904, 6908)
+    cloudshadow_value = c(2976, 2980, 2984, 2988, 3008, 3012, 3016, 3020, 7072, 7076, 7080, 7084, 7104, 7108, 7112, 7116)
+    snowice_value = c(3744, 3748, 3752, 3756, 3776, 3780, 3784, 3788, 7840, 7844, 7848, 7852, 7872, 7876, 7880, 7884)
+    cirrus_value = c(6816, 6820, 6824, 6828, 6848, 6852, 6856, 6860, 6896, 6900, 6904, 6908, 7072, 7076, 7080, 7084, 7104, 7108, 7112, 7116, 7840, 7844, 7848, 7852, 7872, 7876, 7880, 7884)
+    rclValue = c()
+    if (condition_array[1]){
+      rclValue = c(rclValue, cloud_value)
+    }
+    if (condition_array[2]){
+      rclValue = c(rclValue, cloudshadow_value)
+    }
+    if (condition_array[3]){
+      rclValue = c(rclValue, snowice_value)
+    }
+    if (condition_array[4]){
+      rclValue = c(rclValue, cirrus_value)
+    }
+    if (length(rclValue) == 0){
+      rclValue = 3
+    } else {
+      rclValue = unique(rclValue)
+    }
+    rcl = cbind(rclValue, rep(3, length(rclValue)))
+    return(rcl)
+  }
+  getQAarray = function(qa_array, condition_array){
+    classifly_array = rep(1, length(qa_array))
+    for (i in 1:length(qa_array)) {
+      qa_bit = number2binary(qa_array[i], 16)
+      zerone = rep(0, 4)
+      if (qa_bit[12]==1){
+        zerone[1] = 1
+      }
+      if (qa_bit[8] * qa_bit[9]==1){
+        zerone[2] = 1
+      }
+      if (qa_bit[6] * qa_bit[7]==1){
+        zerone[3] = 1
+      }
+      if (qa_bit[4] * qa_bit[5]==1){
+        zerone[4] = 1
+      }
+      if(sum(condition_array & zerone)>0){
+        classifly_array[i] = 0
+      }
+    }
+    return(classifly_array)
+  }
+  number2binary = function(number, noBits) {
+    binary_vector = rev(as.numeric(intToBits(number)))
+    if(missing(noBits)) {
+      return(binary_vector)
+    } else {
+      binary_vector[-(1:(length(binary_vector) - noBits))]
+    }
+  }
+  
+  LS_band_graph <- function(long, lat, band, condition_array){
+    long=long
+    lat=lat
+    query_tmp <- paste("SELECT date filename, ST_Value(rast, ST_SetSRID(ST_Point(", toString(long), ",", toString(lat), "), 32621)) FROM landsat 
+WHERE band = '",toString(band),"'AND ST_Intersects(ST_SetSRID(ST_Point(", toString(long),",", toString(lat), "), 32621), rast)", sep = "")
+    df <- data.frame(dbGetQuery(conn, query_tmp))
+    colnames(df) <- c("Date", "Value")
+    df$points_select <- getQAarray(df$Value, condition_array)
+    df <- df[df$points_select == 1,]
+    df %>%
+      ggplot(aes(x = as.Date(Date), y = Value)) +
+      labs(y = "Values", x = "Date") +
+      geom_point(aes(x = Date, y = Value), colour = 'green4') +
+      scale_x_date(date_breaks = "12 months", date_labels = "%b%y") +
+      labs(title = paste("Time Series for Band", toString(band)))+
+      theme_bw()
+  }
+  
+  
+  output$plot1 <- renderPlot({
+    
+    
+    LS_band_graph(input$long,input$lat,input$band,input$c(input$condition_array1, input$condition_array2, 
+                                                          input$condition_array3, input$condition_array4))}, deleteFile=FALSE)
+  output$text2 <- renderTable({
+    
+    library(terra)
+    x <- input$long
+    y <- input$lat
+    points <- cbind(x, y)
+    v <- vect(points, crs="+proj=utm +zone=10 +datum=WGS84  +units=m")
+    y <- project(v, "+proj=longlat +datum=WGS84")
+    lonlat <- geom(y)[, c("x", "y")]
+    lonlat 
+  })
+}
+
+shinyApp(ui = ui, server = server)
