@@ -202,11 +202,11 @@ ui <- fluidPage(
   navbarMenu("Time Series Plot",
              tabPanel("Time Series",
                       sidebarLayout(
-                        mainPanel(plotOutput("plot1", height = 150 )),
+                        mainPanel(plotOutput("plot1", height = 250 )),
                         
                         sidebarPanel(
                           fluidRow(
-                            mainPanel(plotOutput("plot2", height = 250)),
+                            mainPanel(plotOutput("plot2", height = 50)),
                             
                           )))
              ),
@@ -218,7 +218,7 @@ ui <- fluidPage(
                                       label = "getMask day",
                                       choices = unique(qdf$date)),
                           selectInput("get_band",
-                                      label = "get Band:",
+                                      label = "Band:",
                                       choices = c("QA",2,3,4,5)),
                           checkboxInput("qa_array1",
                                         
@@ -258,9 +258,6 @@ server <- function(input, output) {
                                                               input$qa_array3, input$qa_array4))}, deleteFile=FALSE)
 }
 
-
-# Run the application 
-shinyApp(ui = ui, server = server)
 
 # Run the application 
 shinyApp(ui = ui, server = server)
