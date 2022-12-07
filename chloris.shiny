@@ -202,18 +202,12 @@ ui <- fluidPage(
   navbarMenu("first thing",
              tabPanel("Time Series",
                       sidebarLayout(
-                        mainPanel(plotOutput("plot1", height = 250)),
+                        mainPanel(plotOutput("plot1", height = 150 )),
                         
                         sidebarPanel(
                           fluidRow(
                             mainPanel(plotOutput("plot2", height = 250)),
                             
-                            box(
-                              title = "Longtitude",
-                              sliderInput("long", "Number of observations:", 700000, 900000, 760000)),
-                            box(
-                              title = "Latitude",
-                              sliderInput("lat", "Number of observations:", -400000, -200000, -270000)),
                             selectInput("band",
                                         label = "get Band:",
                                         choices = c("QA","2","3","4","5"))
