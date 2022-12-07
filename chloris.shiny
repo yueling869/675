@@ -12,6 +12,7 @@ library(dplyr)
 library(ggplot2)
 library(NLP)
 library(datapack)
+library(terra)
 
 
 conn <- dbConnect(Postgres(), host = "bu-rstudio-connect.bu.edu",
@@ -188,7 +189,21 @@ WHERE band = '",toString(band),"'AND ST_Intersects(ST_SetSRID(ST_Point(", toStri
 }
 
 
-
+##get long and lat
+dat <- function (x1,y1){
+  points <- cbind(x1,y1)
+  v <- vect(points, crs="+proj=utm +zone=10 +datum=WGS84  +units=m")
+  y <- project(v, "+proj=longlat +datum=WGS84")
+  lonlat <- geom(y)[, c("x", "y")]
+  lonlat=data.frame(lonlat)
+  long=lonlat[1,]
+  lat=lonlat[2,]
+  data =data.frame(cbind(c(long,lat),c(x1,y1)))
+  colnames(data)[1]<- "long&lat"
+  colnames(data)[2]<- "UTM cordinates"
+  rownames(data)[1] <- "longitude"
+  rownames(data)[2] <- "latitude"
+  data}
 
 
 
@@ -202,11 +217,11 @@ ui <- fluidPage(
   navbarMenu("Time Series Plot",
              tabPanel("Time Series",
                       sidebarLayout(
-                        mainPanel(plotOutput("plot1", height = 250 )),
+                        mainPanel(plotOutput("plot1", height = 200 )),
                         
                         sidebarPanel(
                           fluidRow(
-                            mainPanel(plotOutput("plot2", height = 50)),
+                            mainPanel(tableOutput("table")),
                             
                           )))
              ),
@@ -237,7 +252,7 @@ ui <- fluidPage(
                                         label = "cirrus",
                                         value = FALSE)
                         ),
-                        mainPanel(imageOutput("tiffimage",hover = "click"))
+                        mainPanel(imageOutput("tiffimage",hover = "click",height = 500))
                       )))
   
 )
@@ -256,7 +271,17 @@ server <- function(input, output) {
   output$tiffimage <- renderPlot({
     getMask(input$first_date, as.character(input$get_band), c(input$qa_array1, input$qa_array2, 
                                                               input$qa_array3, input$qa_array4))}, deleteFile=FALSE)
-}
+ 
+  
+ 
+
+  output$table <- renderTable({
+    x=input$click[1]
+    y=input$click[2]
+    dat(x,y)
+    })
+  
+  }
 
 
 # Run the application 
