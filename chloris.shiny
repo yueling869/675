@@ -207,10 +207,7 @@ ui <- fluidPage(
                         sidebarPanel(
                           fluidRow(
                             mainPanel(plotOutput("plot2", height = 250)),
-                            
-                            selectInput("band",
-                                        label = "get Band:",
-                                        choices = c("QA","2","3","4","5"))
+           
                           )))
              ),
              
