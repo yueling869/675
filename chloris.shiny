@@ -199,7 +199,7 @@ dat <- function (x1,y1){
   long=lonlat[1,]
   lat=lonlat[2,]
   data =data.frame(cbind(c(long,lat),c(x1,y1)))
-  colnames(data)[1]<- "long&lat"
+  colnames(data)[1]<- "longitude latitude"
   colnames(data)[2]<- "UTM cordinates"
   rownames(data)[1] <- "longitude"
   rownames(data)[2] <- "latitude"
