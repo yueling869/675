@@ -12,13 +12,16 @@ library(dplyr)
 library(ggplot2)
 library(NLP)
 library(datapack)
+
+
 conn <- dbConnect(Postgres(), host = "bu-rstudio-connect.bu.edu",
                   user = "chloris", password = "msspfall22",
                   dbname = "chloris", sslmode="require") # SSL needed!
 query <- "SELECT path, row, date, band, filename, count(*) FROM landsat GROUP BY path, row, date, band, filename LIMIT 1000"
 qdf <- dbGetQuery(conn, query)
-dbDisconnect(conn)
+
 conninfo <- "PG:host=bu-rstudio-connect.bu.edu user=chloris dbname=chloris password=msspfall22 table=landsat mode=2 where='date=\\'2021-10-17\\' AND band=\\'4\\''"
+
 GDALinfo(conninfo)
 getrcl = function(condition_array){
   cloud_value = c(2800, 2804, 2808, 2812, 6896, 6900, 6904, 6908)
@@ -91,6 +94,9 @@ number2binary = function(number, noBits) {
     binary_vector[-(1:(length(binary_vector) - noBits))]
   }
 }
+
+
+
 library(rgdal)
 library(raster)
 library(RPostgres)
@@ -102,9 +108,6 @@ library(datapack)
 
 
 
-conn <- dbConnect(PostgreSQL(), host = "bu-rstudio-connect.bu.edu",
-                  user = "chloris", password = "msspfall22",
-                  dbname = "dbname=chloris sslmode=require")
 
 getrcl = function(condition_array){
   cloud_value = c(2800, 2804, 2808, 2812, 6896, 6900, 6904, 6908)
@@ -243,28 +246,26 @@ ui <- fluidPage(
                                         label = "cirrus",
                                         value = FALSE)
                         ),
-                        mainPanel(imageOutput("tiffimage",click = "click"))
+                        mainPanel(imageOutput("tiffimage",hover = "click"))
                       )))
   
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-##maps
+  #timeseries
+  
+  output$plot1 <- renderPlot({
+    x=input$click[1]
+    y=input$click[2]
+    LS_band_graph(x,y,input$get_band,c(input$qa_array1, input$qa_array2, 
+                                       input$qa_array3, input$qa_array4))}, deleteFile=FALSE)
+  #maps
   
   output$tiffimage <- renderPlot({
     getMask(input$first_date, as.character(input$get_band), c(input$qa_array1, input$qa_array2, 
                                                               input$qa_array3, input$qa_array4))}, deleteFile=FALSE)
-##timeseries
-  
-  output$plot1 <- renderPlot({
-    x=round((input$click)$x)
-    y=round((input$click)$y)
-    LS_band_graph(x,y,input$get_band,c(input$qa_array1, input$qa_array2, 
-                                       input$qa_array3, input$qa_array4))}, deleteFile=FALSE)
-  #maps
-  }
-
+}
 
 
 # Run the application 
