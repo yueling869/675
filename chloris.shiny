@@ -210,18 +210,20 @@ dat <- function (x1,y1){
 library(shiny)
 library(shinythemes)
 library(shinydashboard)
+library(shinycssloaders)
 
 ui <- fluidPage(
-  theme = shinytheme("united"), collapsible = TRUE,
+  theme = shinytheme("slate"), collapsible = TRUE,
+  
   windowTitle = "CHLORIS",
   navbarMenu("Time Series Plot",
              tabPanel("Time Series",
                       sidebarLayout(
-                        mainPanel(plotOutput("plot1", height = 200 )),
+                        mainPanel(withSpinner(plotOutput("plot1", height = 200 ))),
                         
                         sidebarPanel(
                           fluidRow(
-                            mainPanel(tableOutput("table")),
+                            mainPanel(withSpinner(tableOutput("table"))),
                             
                           )))
              ),
@@ -252,7 +254,7 @@ ui <- fluidPage(
                                         label = "cirrus",
                                         value = FALSE)
                         ),
-                        mainPanel(imageOutput("tiffimage",hover = "click",height = 500))
+                        mainPanel(withSpinner(imageOutput("tiffimage",click = "click",height = 500)))
                       )))
   
 )
@@ -271,20 +273,18 @@ server <- function(input, output) {
   output$tiffimage <- renderPlot({
     getMask(input$first_date, as.character(input$get_band), c(input$qa_array1, input$qa_array2, 
                                                               input$qa_array3, input$qa_array4))}, deleteFile=FALSE)
- 
   
- 
-
+  
+  
+  
   output$table <- renderTable({
     x=input$click[1]
     y=input$click[2]
     dat(x,y)
-    })
+  })
   
-  }
+}
 
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
-
