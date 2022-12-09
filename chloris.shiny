@@ -1,4 +1,3 @@
-##original version 
 library(sf)
 library(rgdal)
 library(sp)
@@ -214,16 +213,19 @@ library(shinycssloaders)
 
 ui <- fluidPage(
   theme = shinytheme("slate"), collapsible = TRUE,
-  
+  tags$style(type="text/css",
+             ".shiny-output-error { visibility: hidden; }",
+             ".shiny-output-error:before { visibility: hidden; }"
+  ),
   windowTitle = "CHLORIS",
   navbarMenu("Time Series Plot",
              tabPanel("Time Series",
                       sidebarLayout(
-                        mainPanel(withSpinner(plotOutput("plot1", height = 200 ))),
+                        mainPanel(plotOutput("plot1", height = 200 )),
                         
                         sidebarPanel(
                           fluidRow(
-                            mainPanel(withSpinner(tableOutput("table"))),
+                            mainPanel(tableOutput("table")),
                             
                           )))
              ),
