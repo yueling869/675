@@ -21,14 +21,28 @@ for(nu in sapply(1:10,function(k) k*baseline_std)){
 }
 
 results
-a=plot(results$num_groups,results$power,col=factor(results$nu),
-     xlab = "Number of groups", ylab = "Power")
-a
+result=results
+result$nu[result$nu<3] <- "2.32"
+result$nu[result$nu>3&result$nu<5] <-"4.64"
+result$nu[result$nu>6&result$nu<7] <- "6.69"
+result$nu[result$nu>8&result$nu<11] <-"9.28"
+result$nu[result$nu>11&result$nu<12]<-"11.6"
+result$nu[result$nu>13&result$nu<14]<-"13.91"
+result$nu[result$nu>16&result$nu<17]<-"16.23"
+result$nu[result$nu>18&result$nu<19]<-"18.55"
+result$nu[result$nu>20&result$nu<21]<-"20.87"
+result$nu[result$nu>23] <- "23.19"
+result
 
-b=plot(results$nu,results$power,col=factor(results$num_groups),
-       xlab = "nu", ylab = "Power")
+library(ggplot2)
 
-b
+ggplot(results,aes(x=num_groups, y=power, group=nu, color=nu)) +
+  geom_line()+ geom_point()
+
+ggplot(results,aes(x=nu, y=power, group=num_groups, color=num_groups)) +
+  geom_line()+ geom_point()
+
+
      
 
 
