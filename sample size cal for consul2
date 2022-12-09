@@ -36,10 +36,10 @@ result
 
 library(ggplot2)
 
-ggplot(results,aes(x=num_groups, y=power, group=nu, color=nu)) +
+ggplot(result,aes(x=num_groups, y=power, group=nu, color=nu)) +
   geom_line()+ geom_point()
 
-ggplot(results,aes(x=nu, y=power, group=num_groups, color=num_groups)) +
+ggplot(result,aes(x=nu, y=power, group=num_groups, color=num_groups)) +
   geom_line()+ geom_point()
 
 
