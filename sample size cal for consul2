@@ -1,0 +1,24 @@
+library(lme4)
+library(lmerTest)
+beta = 2.3
+s = sqrt(2*3.5^2)
+baseline_std = sqrt(var(c(1.46-1.41, 11.07-9.85, 1.86-1.75, 70.43-75.21, 29.08-30.18))) #see publication
+p_per_g = 6
+ngroups = seq(80,140,10)
+pvalues = c()
+results = data.frame(matrix(ncol = 3, nrow = 0))
+colnames(results) = c("num_groups", "nu", "power")
+for(nu in sapply(1:10,function(k) k*baseline_std)){
+  for(i in ngroups){
+    for(j in 1:40){    
+      g = rep(rnorm(i,0,nu),p_per_g)    
+      y = beta + g + rnorm(i*p_per_g,0,s)    
+      mod = lmer(y~1+(1|g),data=data.frame(cbind(y,g)))    
+      pvalues = c(pvalues, coef(summary(mod))[, 5])
+    }
+    results = rbind(results, data.frame(num_groups=i, nu=nu, power=mean(pvalues<0.05)))
+  }
+}
+
+results
+plot(results$nu,results$power)
