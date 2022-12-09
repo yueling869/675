@@ -21,9 +21,15 @@ for(nu in sapply(1:10,function(k) k*baseline_std)){
 }
 
 results
-plot(results$num_groups,results$power,col=colors(factor(results$nu),
+a=plot(results$num_groups,results$power,col=factor(results$nu),
      xlab = "Number of groups", ylab = "Power")
+a
 
+b=plot(results$nu,results$power,col=factor(results$num_groups),
+       xlab = "nu", ylab = "Power")
+
+b
+     
 
 
 
