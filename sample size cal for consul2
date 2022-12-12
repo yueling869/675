@@ -10,6 +10,7 @@ results = data.frame(matrix(ncol = 3, nrow = 0))
 colnames(results) = c("num_groups", "nu", "power")
 for(nu in sapply(1:10,function(k) k*baseline_std)){
   for(i in ngroups){
+    pvalues = c()
     for(j in 1:40){    
       g = rep(rnorm(i,0,nu),p_per_g)    
       y = beta + g + rnorm(i*p_per_g,0,s)    
