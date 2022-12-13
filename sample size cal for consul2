@@ -4,14 +4,14 @@ beta = 2.3
 s = sqrt(2*3.5^2)
 baseline_std = sqrt(var(c(1.46-1.41, 11.07-9.85, 1.86-1.75, 70.43-75.21, 29.08-30.18))) #see publication
 p_per_g = 6
-ngroups = seq(80,300,20)
+ngroups = seq(80,150,10)
 pvalues = c()
 results = data.frame(matrix(ncol = 3, nrow = 0))
 colnames(results) = c("num_groups", "nu", "power")
 for(nu in sapply(1:10,function(k) k*baseline_std)){
   for(i in ngroups){
     pvalues = c()
-    for(j in 1:40){    
+    for(j in 1:60){    
       g = rep(rnorm(i,0,nu),p_per_g)    
       y = beta + g + rnorm(i*p_per_g,0,s)    
       mod = lmer(y~1+(1|g),data=data.frame(cbind(y,g)))    
@@ -38,27 +38,13 @@ result
 library(ggplot2)
 
 ggplot(results,aes(x=num_groups, y=power, group=nu, color=nu)) +
-  geom_line()+ geom_point()
+  geom_line()+ geom_point()+geom_hline(yintercept=0.8, linetype="dashed")
 
 ggplot(results,aes(x=nu, y=power, group=num_groups, color=num_groups)) +
-  geom_line()+ geom_point()
+  geom_line()+ geom_point()+geom_hline(yintercept=0.8, linetype="dashed")
+
+     
+
 
 
      
-
-
-
-     
-##Based on previous study paper, we assume pre-post effect between groups PTSD,EE,SS,FI,RES is about 2.32.
-##Based on this sd, we simulate the data to creat predicted data frames with different number of groups.
-##Then we creat the mixed effect moodels using the dataframes we've simulated.
-##The power of each model is being caluclated to see which group size can meet the standard asuuming the setting power equals to 0.8.
-##Since sd= 2.3 only represents the fixed effect, we also need sd which includes the random effect.
-## more possible standard derivation is calculated to see the potantial power of the analysis.
-## In the power plot, x represents the number of groups and y represent the power. Different colors shows the power result for different sd.
-##Result shows that, since the prepared group size is around 100 to 120, if the sd of the data supposed to be less than 16.23, the power will always be greater than 80%.
-##However, if the sd exceeds 16.23, the power will be less than 80%. We tried to extend the group size to 300, but it still cannot incresse the power to 80%.
-##This infers that a larger amount of group over 300 is needed if the final data's sd is more than 16.23 and such large group size might be difficult to acheive.
-##Based on the research paper, we found that the largerst sd got for different measurement is 10.11. This means that it will be very unlikely for the sd of the final data to exceed 16.23.
-##As a result, we conclude that 100 to 120 groups will be able to provide a power of over 0.8 for the research study.
-
